@@ -1,24 +1,26 @@
+import { Language } from '@interfaces/Language'
+import { IWeather } from '@interfaces/Weather.interface'
 import { useEffect, useState } from 'react'
-import { CloudsIcon } from './components/icons/CloudsIcon'
-import { IWeather } from './interfaces/Weather.interface'
+
+import { LanguageToggle, SearchForm, WeatherInfo } from '@components'
 
 const API_KEY = import.meta.env.VITE_API_KEY
 
 function App() {
   const [weatherData, setWeatherData] = useState<IWeather | null>(null)
 
-  const [city, setCity] = useState('bishkek')
+  const [lang, setLang] = useState<Language>('en')
+  const [loading, setLoading] = useState(false)
+  const [errorState, setErrorState] = useState(null)
 
-  const cityHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCity(e.target.value)
-  }
+  const getWeather = (city: string) => {
+    setErrorState(null)
+    setLoading(true)
 
-  console.log('App ~ weatherData:', weatherData)
-
-  const getWeather = () => {
-    fetch(`https://api.openweathermap.org/data/2.5/weather?appid=${API_KEY}&q=${city}&units=metric`)
+    fetch(
+      `https://api.openweathermap.org/data/2.5/weather?appid=${API_KEY}&q=${city}&units=metric&lang=${lang}`
+    )
       .then((res) => {
-        console.log('.then ~ res:', res)
         if (res.status !== 200) {
           throw new Error(res.statusText)
         }
@@ -26,50 +28,21 @@ function App() {
       })
       .then((res) => res.json())
       .then((data) => {
-        console.log('.then ~ data:', data)
         const weatherData = data as IWeather
         setWeatherData(weatherData)
       })
-      .catch((error) => console.error(error))
-  }
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    getWeather()
+      .catch((error) => setErrorState(error.message))
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => {
-    getWeather()
-  }, [])
-
-  // const getBgImage = () => {
-  //   if (weatherData?.weather[0].main === 'Clear') {
-  //     return 'bg-clear'
-  //   }
-  //   if (weatherData?.weather[0].main === 'Clouds') {
-  //     return 'bg-clouds'
-  //   }
-  //   if (weatherData?.weather[0].main === 'Mist') {
-  //     return 'bg-mist'
-  //   }
-
-  //   return 'bg-clear'
-  // }
+    getWeather('london')
+  }, [lang])
 
   const bgImages = {
     Empty: '',
     Clear: 'bg-clear',
     Clouds: 'bg-clouds',
-    Mist: 'bg-mist',
-    Smoke: 'bg-smoke',
-    Drizzle: 'bg-drizzle',
-    Rain: 'bg-rain',
-  }
-
-  const icons = {
-    Empty: '',
-    Clear: 'bg-clear',
-    Clouds: <CloudsIcon color='yellow' />,
     Mist: 'bg-mist',
     Smoke: 'bg-smoke',
     Drizzle: 'bg-drizzle',
@@ -82,31 +55,15 @@ function App() {
         bgImages[weatherData?.weather[0].main || 'Empty']
       } bg-cover`}
     >
-      <div className='max-w-[600px] w-full border-red-500 border-solid border p-4 rounded-2xl'>
-        <form onSubmit={onSubmit} className='mb-4 flex gap-4'>
-          <input
-            type='text'
-            onChange={cityHandler}
-            className='h-10 flex-1 p-2 border border-blue-400 border-solid rounded-xl outline-none focus:border-blue-600'
-            placeholder='Search city...'
-          />
-          <button
-            type='submit'
-            className='h-10 p-2 border border-blue-400 border-solid rounded-xl outline-none focus:border-blue-600'
-          >
-            Submit
-          </button>
-        </form>
-        {weatherData ? (
-          <div>
-            <h1>City: {weatherData?.name}</h1>
-            <p>Temp: {Math.round(weatherData?.main.temp)}°C</p>
-            <p>time: {new Date(weatherData.dt * 1000).toLocaleString()}</p>
-            {icons[weatherData?.weather[0].main || 'Empty']}
-          </div>
-        ) : (
-          <div>no weather data...</div>
-        )}
+      <div className='max-w-[600px] w-full border-red-500 border-solid border p-4 rounded-2xl backdrop-blur-sm bg-black bg-opacity-10'>
+        <SearchForm lang={lang} getWeather={getWeather} errorState={errorState} />
+        <LanguageToggle lang={lang} setLang={setLang} />
+        <WeatherInfo
+          weatherData={weatherData}
+          lang={lang}
+          loading={loading}
+          errorState={errorState}
+        />
       </div>
     </div>
   )

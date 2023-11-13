@@ -1,0 +1,18 @@
+{
+  "en": {
+    "city": "City",
+    "temp": "Temp",
+    "windSpeed": "Wind",
+    "ms": "m/s",
+    "placeholder": "Search city...",
+    "submitBtn": "Submit"
+  },
+  "ru": {
+    "city": "Город",
+    "temp": "Температура",
+    "windSpeed": "Скорость ветра",
+    "ms": "м/с",
+    "placeholder": "Поиск города...",
+    "submitBtn": "Найти"
+  }
+}
